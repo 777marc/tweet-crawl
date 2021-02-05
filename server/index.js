@@ -62,7 +62,7 @@ async function deleteRules(rules) {
     return response.body;
 }
 
-function streamTweets() {
+function streamTweets(socket) {
     const stream = needle.get(streamURL, {
         headers : headers
     });
@@ -70,31 +70,25 @@ function streamTweets() {
     stream.on('data', data => {
         try {
             const json = JSON.parse(data);
-            console.log(json);
+            socket.emit('tweet', json);
         } catch(err) {}
     })
 }
 
-io.on('connection', () => {
-    console.log('client connected');
-})
+io.on('connection', async () => {
+    let currentRules;
+    try {
+        // get current rules
+        currentRules = await getRules();
+        // delete current rules
+        await deleteRules(currentRules);
+        // set new rules
+        await setRules();
+    } catch(err) {
+        console.error(err);
+        process.exit(1);
+    }
+    streamTweets(io);
+});
 
 server.listen(PORT, () => console.log(`listening on ${PORT}`) )
-
-
-// execute
-// (async () => {
-//     let currentRules;
-//     try {
-//         // get current rules
-//         currentRules = await getRules();
-//         // delete current rules
-//         await deleteRules(currentRules);
-//         // set new rules
-//         await setRules();
-//         await streamTweets();
-//     } catch(err) {
-//         console.error(err);
-//         process.exit(1);
-//     }
-// })()
