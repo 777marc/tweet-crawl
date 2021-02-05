@@ -1,0 +1,21 @@
+{
+  "name": "tweet-crawl",
+  "version": "1.0.0",
+  "description": "A site crawler for a filtered tweet stream",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server/index",
+    "dev": "node server/index"
+  },
+  "author": "marc m",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "needle": "^2.6.0",
+    "socket.io": "^3.1.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.7"
+  }
+}
