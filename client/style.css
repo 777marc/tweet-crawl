@@ -63,13 +63,11 @@ body {
 
 .table-container {
   max-height: 800px;
-  padding: 10px;
   overflow: scroll;
 }
 
 table {
   color: #e2e2e2;
-  padding: 10px;
   width: 100%;
 }
 
