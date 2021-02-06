@@ -1,6 +1,7 @@
 const http = require('http');
 const path = require('path');
 const express = require('express');
+const bodyParser = require('body-parser');
 const socketIo = require('socket.io');
 const needle = require('needle');
 const { connect } = require('http2');
@@ -11,15 +12,44 @@ const PORT = process.env.PORT || 3000;
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
+const urlencodedParser = bodyParser.urlencoded({ extended: false });
+const jsonParser = bodyParser.json()
 
 const headers = { Authorization: `Bearer ${TOKEN}` };
 const rulesURL = 'https://api.twitter.com/2/tweets/search/stream/rules';
 const streamURL = 'https://api.twitter.com/2/tweets/search/stream?tweet.fields=public_metrics&expansions=author_id';
-const rules = [{ value: 'obama' }];
+let rules = [{ value: 'world news' }];
 
+// load index
 app.get('/', (req, res) => {
     res.sendFile(path.resolve(__dirname, '../', 'client', 'index.html'));
 });
+
+// load supporting style sheet
+app.get('/style.css', function(req, res) {
+    res.sendFile(path.resolve(__dirname, '../', 'client', 'style.css'));
+});
+
+app.post('/rule', jsonParser, (req, res) => {
+    updateRules(req.body.searchTerm);
+    res.status(200).send('rule updated');
+});
+
+async function updateRules(value) {
+    rules = [{ value }];
+    let currentRules;
+    try {
+        // get current rules
+        currentRules = await getRules();
+        // delete current rules
+        await deleteRules(currentRules);
+        // set new rules
+        await setRules();
+    } catch(err) {
+        console.error(err);
+        process.exit(1);
+    }
+}
 
 async function getRules() {
     const response = await needle('get', rulesURL, {
@@ -29,6 +59,7 @@ async function getRules() {
 }
 
 async function setRules() {
+    console.log('rules', rules);
     const data = {
         add: rules
     }
@@ -76,18 +107,6 @@ function streamTweets(socket) {
 }
 
 io.on('connection', async () => {
-    let currentRules;
-    try {
-        // get current rules
-        currentRules = await getRules();
-        // delete current rules
-        await deleteRules(currentRules);
-        // set new rules
-        await setRules();
-    } catch(err) {
-        console.error(err);
-        process.exit(1);
-    }
     streamTweets(io);
 });
 

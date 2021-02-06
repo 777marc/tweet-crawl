@@ -5,110 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@200;600&display=swap');
-
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            background-color: #1c223b;
-            color: #fff;
-            font-family: 'Source Sans Pro', 'sans-serif';
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-            padding: 20px;
-        }
-
-        .container {
-            background-color: #273349;
-            border-radius: 10px;
-            box-shadow: 0 5px 10px rgba(12, 16, 31, 0.4);
-            padding: 100px;
-            margin: auto;
-            width: 1000px;
-        }
-
-        table {
-            color: #e2e2e2;
-            padding: 10px;
-            width: 100%;
-        }
-
-        table th,
-        table td {
-            padding: 15px;
-            text-align: left;
-        }
-
-        table tbody tr {
-            background-color: #1c223b;
-        }
-
-        table tbody tr:hover {
-            background-color: #151b31;
-            box-shadow: 0 3px 5px rgba(0,0,0,0.2);
-        }
-
-        table tbody tr td:first-of-type {
-            border-top-left-radius: 5px;
-            border-bottom-left-radius: 5px;
-        }
-
-        table tbody tr td:last-of-type {
-            border-top-right-radius: 5px;
-            border-bottom-right-radius: 5px;
-            text-align: center;
-        }
-
-        table tbody tr.priority-200 td:first-of-type {
-            border-left: 5px solid #444;
-        }
-
-        table tbody tr.priority-600 td:first-of-type {
-            border-left: 5px solid red;
-        }
-
-        table tbody tr.priority-300 td:first-of-type {
-            border-left: 5px solid #40c587;
-        }
-
-        table tbody tr td .fa-circle {
-            transform: scale(0.5);
-        }
-
-        table tbody tr.priority-200 td .fa-circle {
-            color: #444;
-        }
-
-        table tbody tr.priority-600 td .fa-circle {
-            color: red;
-        }
-
-        table tbody tr.priority-300 td .fa-circle {
-            color: #40c587;
-        }
-
-
-        @media(max-width: 768px) {
-            .container {
-                padding: 20px;
-            }
-
-            .delete {
-                opacity: 1;
-            }
-
-            table th:nth-of-type(3),
-            table tr:nth-of-type(3) {
-                display: none;
-            }
-        }        
-    </style>
+    <link rel="stylesheet" href="style.css">
 
     <link
       rel="stylesheet"
@@ -122,8 +19,10 @@
 <body>
 
     <div class="container">
-    
-        <table>
+        <i class="fas fa-search fa-2x icon"></i>
+        <input id="search-input" type="text" class="search">
+        <h3 id="loading-message" class="loading-message">waiting on <i class="fab fa-twitter"></i>...</h3>
+        <table id='thead'>
             <thead>
                 <tr>
                     <th>text</th>
@@ -139,15 +38,14 @@
 
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js" integrity="sha512-bZS47S7sPOxkjU/4Bt0zrhEtWx0y0CRkhEp8IckzK+ltifIIE9EMIMTuT/mEzoIMewUINruDBIR/jJnbguonqQ==" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.1/socket.io.js" integrity="sha512-oFOCo2/3DtjrJG4N27BjSLQWoiBv171sK6a+JiWjp/7agxC2nCUP358AqzxkBUb5jX8g6CYLPdSKQTbC0weCwA==" crossorigin="anonymous"></script>
     <script>
 
         const tweetStream = document.getElementById('tweetStream');
+        const tableHeader = document.getElementById('thead');
+        const loadingMessage = document.getElementById('loading-message');
         const socket = io();
-        
-        socket.on('connect', () => {
-            console.log('connected');
-        });
 
         socket.on('tweet', tweet => {
 
@@ -160,7 +58,6 @@
                 popColor = 'priority-600';
             }
 
-            console.log(tweet.data)
             const tweetData = {
                 id: tweet.data.id,
                 text: tweet.data.text,
@@ -186,7 +83,47 @@
             setTimeout(() => {
                tweetEl.remove() 
             }, 10000);
+
+            if(!tweetEl.hasChildNodes()) {
+                tableHeader.classList.add('hide');
+                loadingMessage.classList.remove('hide');
+            } else {
+                tableHeader.classList.remove('hide');
+                loadingMessage.classList.add('hide');
+            }
         });
+
+        (function() {
+
+            tableHeader.classList.add('hide');
+            let searchInput = document.getElementById('search-input')
+
+            searchInput.addEventListener('keypress', function(e) {
+
+                if(e.target.value === '') {
+                    return;
+                }    
+
+                if(e.key === 'Enter') {
+
+                    let data = {
+                        searchTerm: e.target.value
+                    }
+                    
+                    axios.post('/rule', data).then(res => {
+                        searchInput.value = '';
+                    }).catch(err => console.log(err));
+
+                }      
+
+            });
+
+        })();
+
+        function search(value) {
+                
+        }
+
     </script>
 
 </body>
