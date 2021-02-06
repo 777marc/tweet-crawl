@@ -5,12 +5,110 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-      integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1"
-      crossorigin="anonymous"
-    />
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@200;600&display=swap');
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #1c223b;
+            color: #fff;
+            font-family: 'Source Sans Pro', 'sans-serif';
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: #273349;
+            border-radius: 10px;
+            box-shadow: 0 5px 10px rgba(12, 16, 31, 0.4);
+            padding: 100px;
+            margin: auto;
+            width: 1000px;
+        }
+
+        table {
+            color: #e2e2e2;
+            padding: 10px;
+            width: 100%;
+        }
+
+        table th,
+        table td {
+            padding: 15px;
+            text-align: left;
+        }
+
+        table tbody tr {
+            background-color: #1c223b;
+        }
+
+        table tbody tr:hover {
+            background-color: #151b31;
+            box-shadow: 0 3px 5px rgba(0,0,0,0.2);
+        }
+
+        table tbody tr td:first-of-type {
+            border-top-left-radius: 5px;
+            border-bottom-left-radius: 5px;
+        }
+
+        table tbody tr td:last-of-type {
+            border-top-right-radius: 5px;
+            border-bottom-right-radius: 5px;
+            text-align: center;
+        }
+
+        table tbody tr.priority-200 td:first-of-type {
+            border-left: 5px solid #444;
+        }
+
+        table tbody tr.priority-600 td:first-of-type {
+            border-left: 5px solid red;
+        }
+
+        table tbody tr.priority-300 td:first-of-type {
+            border-left: 5px solid #40c587;
+        }
+
+        table tbody tr td .fa-circle {
+            transform: scale(0.5);
+        }
+
+        table tbody tr.priority-200 td .fa-circle {
+            color: #444;
+        }
+
+        table tbody tr.priority-600 td .fa-circle {
+            color: red;
+        }
+
+        table tbody tr.priority-300 td .fa-circle {
+            color: #40c587;
+        }
+
+
+        @media(max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            .delete {
+                opacity: 1;
+            }
+
+            table th:nth-of-type(3),
+            table tr:nth-of-type(3) {
+                display: none;
+            }
+        }        
+    </style>
 
     <link
       rel="stylesheet"
@@ -23,14 +121,22 @@
 </head>
 <body>
 
-    <nav class="navbar navbar-dark bg-dark">
-        <div class="container">
-          <a href="#" class="navbar-brand">Real-Time Tweet Stream</a>
-        </div>
-    </nav>
-  
     <div class="container">
-    <div id="tweetStream"></div>
+    
+        <table>
+            <thead>
+                <tr>
+                    <th>text</th>
+                    <th>likes</th>
+                    <th>retweets</th>
+                    <th>username</th>
+                </tr>
+            </thead>
+            <tbody  id="tweetStream">
+                        
+            </tbody>
+        </table>
+
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.1/socket.io.js" integrity="sha512-oFOCo2/3DtjrJG4N27BjSLQWoiBv171sK6a+JiWjp/7agxC2nCUP358AqzxkBUb5jX8g6CYLPdSKQTbC0weCwA==" crossorigin="anonymous"></script>
@@ -44,27 +150,42 @@
         });
 
         socket.on('tweet', tweet => {
-            // console.log(tweet)
-            const tweetData = {
-            id: tweet.data.id,
-            text: tweet.data.text,
-            username: `@${tweet.includes.users[0].username}`,
+
+            let popColor =  'priority-200';
+
+            if(tweet.data.public_metrics.retweet_count > 100) {
+                popColor = 'priority-300';
+            }
+            if(tweet.data.public_metrics.retweet_count > 500) {
+                popColor = 'priority-600';
             }
 
-            const tweetEl = document.createElement('div')
-            tweetEl.className = 'card my-4'
+            console.log(tweet.data)
+            const tweetData = {
+                id: tweet.data.id,
+                text: tweet.data.text,
+                likes: tweet.data.public_metrics.like_count,
+                retweets: tweet.data.public_metrics.retweet_count,
+                username: `@${tweet.includes.users[0].username}`,
+            }
+
+            const tweetEl = document.createElement('tr')
+            tweetEl.className = popColor
             tweetEl.innerHTML = `
-                <div class="card-body">
-                    <h5 class="card-title">${tweetData.text}</h5>
-                    <h6 class="card-subtitle mb-2 text-muted">${tweetData.username}</h6>
-                    
-                    <a class="btn btn-primary mt-3" href="https://twitter.com/${tweetData.username}/status/${tweetData.id}">
-                        <i class="fab fa-twitter"></i> Go To Tweet    
-                    </a>
-                </div>
+                <td>${tweetData.text}</td>
+                <td>${tweetData.likes}</td>
+                <td>
+                    <i class="fas fa-circle"></i>
+                    ${tweetData.retweets}
+                </td>
+                <td>${tweetData.username}</td>
             `
 
             tweetStream.appendChild(tweetEl)
+
+            setTimeout(() => {
+               tweetEl.remove() 
+            }, 10000);
         });
     </script>
 

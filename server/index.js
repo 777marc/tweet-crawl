@@ -15,7 +15,7 @@ const io = socketIo(server);
 const headers = { Authorization: `Bearer ${TOKEN}` };
 const rulesURL = 'https://api.twitter.com/2/tweets/search/stream/rules';
 const streamURL = 'https://api.twitter.com/2/tweets/search/stream?tweet.fields=public_metrics&expansions=author_id';
-const rules = [{ value: 'giveaway', value: 'xbox' }];
+const rules = [{ value: 'obama' }];
 
 app.get('/', (req, res) => {
     res.sendFile(path.resolve(__dirname, '../', 'client', 'index.html'));
