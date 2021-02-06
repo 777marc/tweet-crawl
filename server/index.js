@@ -32,7 +32,7 @@ app.get('/style.css', function(req, res) {
 
 app.post('/rule', jsonParser, (req, res) => {
     updateRules(req.body.searchTerm);
-    res.status(200).send('rule updated');
+    res.status(200).send(req.body.searchTerm);
 });
 
 async function updateRules(value) {
@@ -59,7 +59,6 @@ async function getRules() {
 }
 
 async function setRules() {
-    console.log('rules', rules);
     const data = {
         add: rules
     }
